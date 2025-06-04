@@ -21,6 +21,10 @@ function Home() {
     getTasks();
   }
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
   async function deleteTasks(id) {
     await api.delete(`/tasks/${id}`);
     getTasks();
@@ -32,7 +36,10 @@ function Home() {
 
   return (
     <main className="bg-[#121212] min-h-screen flex items-center justify-center px-4 py-10">
-      <form className="bg-[#1E1E2E] w-full rounded-md p-6 shadow-lg">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-[#1E1E2E] w-full rounded-md p-6 shadow-lg"
+      >
         <div className="flex flex-col gap-4">
           <input
             id="taskInput"
@@ -47,7 +54,7 @@ function Home() {
           <div className="flex justify-end">
             <button
               id="btn-Add"
-              type="button"
+              type="submit"
               className="h-11 w-32 border border-[#2C2C3A] bg-[#3B3B5C] rounded-sm font-bold transition duration-300"
               onClick={createTasks}
               disabled={!inputValue.trim()}
