@@ -1,18 +1,22 @@
 import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import Trash from "../../assets/Trash.png";
+import Edit from "../../assets/Edit.png";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [tasks, setTasks] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const inputTask = useRef();
+  const navigate = useNavigate();
 
   async function getTasks() {
     const tasksFromApi = await api.get("/tasks");
     setTasks(tasksFromApi.data);
   }
 
-  async function createTasks() {
+  async function postTasks() {
     await api.post("/tasks", {
       task: inputTask.current.value,
     });
@@ -21,17 +25,28 @@ function Home() {
     getTasks();
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  };
+  async function putTasks(id, newTaskValue) {
+    await api.put(`/tasks/${id}`, { task: newTaskValue });
+    setEditingTaskId(null);
+    getTasks();
+  }
 
   async function deleteTasks(id) {
     await api.delete(`/tasks/${id}`);
     getTasks();
   }
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
   useEffect(() => {
-    getTasks();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    } else {
+      getTasks();
+    }
   }, []);
 
   return (
@@ -56,7 +71,7 @@ function Home() {
               id="btn-Add"
               type="submit"
               className="h-11 w-32 border border-[#2C2C3A] bg-[#3B3B5C] rounded-sm font-bold transition duration-300"
-              onClick={createTasks}
+              onClick={postTasks}
               disabled={!inputValue.trim()}
               style={{
                 cursor: inputValue.trim() ? "pointer" : "not-allowed",
@@ -88,24 +103,51 @@ function Home() {
                         <polyline points="1 5 4 8 11 1"></polyline>
                       </svg>
                     </span>
-                    <span className="text-white font-semibold">
-                      {task.task}
-                    </span>
+                    {editingTaskId === task.id ? (
+                      <input
+                        defaultValue={task.task}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            putTasks(task.id, e.target.value);
+                          }
+                        }}
+                        onBlur={() => setEditingTaskId(null)}
+                        className="bg-transparent text-white border-b border-white focus:outline-none"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="text-white font-semibold">
+                        {task.task}
+                      </span>
+                    )}
                   </label>
                 </div>
               </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingTaskId(task.id)}
+                  className="hover:bg-[#3B3B3B] rounded p-2 cursor-pointer"
+                >
+                  <img
+                    src={Edit}
+                    style={{ width: "16px", height: "16px" }}
+                    alt="Edit"
+                  />
+                </button>
 
-              <button
-                type="button"
-                onClick={() => deleteTasks(task.id)}
-                className="btn-Delete hover:bg-[#3B3B3B] rounded p-2 cursor-pointer"
-              >
-                <img
-                  src={Trash}
-                  style={{ width: "16px", height: "16px" }}
-                  alt="Delete"
-                />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => deleteTasks(task.id)}
+                  className="hover:bg-[#3B3B3B] rounded p-2 cursor-pointer"
+                >
+                  <img
+                    src={Trash}
+                    style={{ width: "16px", height: "16px" }}
+                    alt="Delete"
+                  />
+                </button>
+              </div>
             </div>
           ))}
         </div>
