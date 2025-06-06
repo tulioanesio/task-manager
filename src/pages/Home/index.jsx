@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import Trash from "../../assets/Trash.png";
 import Edit from "../../assets/Edit.png";
+import Logout from "../../assets/Logout.png";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -40,6 +41,11 @@ function Home() {
     e.preventDefault();
   };
 
+  function handleLogout() {
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -51,6 +57,19 @@ function Home() {
 
   return (
     <main className="bg-[#121212] min-h-screen flex items-center justify-center px-4 py-10">
+      <header className="fixed top-4 right-4 z-50">
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 text-sm font-semibold text-[#78BAFD] border border-[#2C2C3A] bg-[#3B3B5C] rounded hover:bg-[#4b4b6c] transition-colors cursor-pointer"
+        >
+          <img
+            src={Logout}
+            style={{ width: "16px", height: "16px" }}
+            alt="Logout"
+          />
+        </button>
+      </header>
+
       <form
         onSubmit={handleSubmit}
         className="bg-[#1E1E2E] w-full rounded-md p-6 shadow-lg"

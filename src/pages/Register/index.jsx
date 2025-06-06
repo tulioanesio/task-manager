@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
 import api from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
   const nameRef = useRef();
@@ -8,21 +9,31 @@ function Register() {
   const passwordRef = useRef();
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     try {
-      await api.post("/register", {
+      const response = await api.post("/register", {
         name: nameRef.current.value,
         email: emailRef.current.value,
         password: passwordRef.current.value,
       });
+      const token = response.data.token;
+      localStorage.setItem("token", token);
 
       setMessage("User registered successfully");
       setError(false);
+
+      navigate("/home");
     } catch (err) {
-      setMessage("Error registering user");
+      if (err.response?.status === 409) {
+        setMessage("This email is already in use.");
+      } else {
+        setMessage("Error registering user.");
+      }
+
       setError(true);
     }
   }
@@ -45,7 +56,7 @@ function Register() {
 
           <input
             ref={emailRef}
-            type="email"
+            type="text"
             placeholder="Email"
             className="px-3 py-2 rounded-md bg-[#2A2A3C] text-[#E0E0E0] placeholder-[#4bb1f1] focus:outline-none focus:ring-2 focus:ring-[#4bb1f1]"
             required

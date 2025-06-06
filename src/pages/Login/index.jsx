@@ -23,8 +23,13 @@ function Login() {
 
       navigate("/home");
     } catch (err) {
-      setMessage("Your password or email is incorrect. Please try again.");
-      setError(true);
+      if (err.response?.status === 404) {
+        setMessage("User not found!");
+      } else if(err.response?.status === 401) {
+        setMessage("Incorrect password.");
+      }else{
+        setMessage("Unexpected error.");
+      }
     }
   }
 
