@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Register() {
   const nameRef = useRef();
   const emailRef = useRef();
   const passwordRef = useRef();
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(event) {
@@ -23,18 +23,15 @@ function Register() {
       const token = response.data.token;
       localStorage.setItem("token", token);
 
-      setMessage("User registered successfully");
-      setError(false);
+      toast.success("User registered successfully");
 
-      navigate("/home");
+      setTimeout(() => navigate("/home"), 1000);
     } catch (err) {
       if (err.response?.status === 409) {
-        setMessage("This email is already in use.");
+        toast.error("This email is already in use.");
       } else {
-        setMessage("Error registering user.");
+        toast.error("Error registering user.");
       }
-
-      setError(true);
     }
   }
 
@@ -76,16 +73,7 @@ function Register() {
           >
             Submit
           </button>
-
-          {message && (
-            <p
-              className={`text-sm font-semibold text-center ${
-                error ? "text-red-500" : "text-green-500"
-              }`}
-            >
-              {message}
-            </p>
-          )}
+          <ToastContainer theme="dark" autoClose={500}/>
         </form>
 
         <p className="mt-4 text-sm text-[#9CA3AF] text-center">
