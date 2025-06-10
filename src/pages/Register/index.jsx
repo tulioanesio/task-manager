@@ -23,7 +23,9 @@ function Register() {
       const token = response.data.token;
       localStorage.setItem("token", token);
 
-      toast.success("User registered successfully");
+      toast.success("User registered successfully", {
+        autoClose: 500
+      });
 
       setTimeout(() => navigate("/home"), 1000);
     } catch (err) {
@@ -73,7 +75,7 @@ function Register() {
           >
             Submit
           </button>
-          <ToastContainer theme="dark" autoClose={500}/>
+          <ToastContainer theme="dark" autoClose={5000} />
         </form>
 
         <p className="mt-4 text-sm text-[#9CA3AF] text-center">
