@@ -47,19 +47,15 @@ function Home() {
   }
 
   async function toggleTaskDone(id, currentStatus) {
-    try {
-      await api.patch(`/tasks/${id}`, {
-        isDone: !currentStatus,
-      });
+    await api.patch(`/tasks/${id}`, {
+      isDone: !currentStatus,
+    });
 
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === id ? { ...task, isDone: !currentStatus } : task
-        )
-      );
-    } catch (error) {
-      console.error("Erro ao atualizar isDone:", error);
-    }
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, isDone: !currentStatus } : task
+      )
+    );
   }
 
   function handleLogout() {
