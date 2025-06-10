@@ -12,6 +12,15 @@ function Home() {
   const inputTask = useRef();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    } else {
+      getTasks();
+    }
+  }, []);
+
   async function getTasks() {
     const tasksFromApi = await api.get("/tasks");
     setTasks(tasksFromApi.data);
@@ -37,23 +46,30 @@ function Home() {
     getTasks();
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  };
+  async function toggleTaskDone(id, currentStatus) {
+    try {
+      await api.patch(`/tasks/${id}`, {
+        isDone: !currentStatus,
+      });
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === id ? { ...task, isDone: !currentStatus } : task
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar isDone:", error);
+    }
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
     navigate("/login");
   }
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-    } else {
-      getTasks();
-    }
-  }, []);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
 
   return (
     <main className="bg-[#121212] min-h-screen flex items-center justify-center px-4 py-10">
@@ -113,8 +129,10 @@ function Home() {
                   <input
                     className="inp-cbx"
                     id={`cbx-${task.id}`}
+                    checked={task.isDone}
                     type="checkbox"
                     style={{ display: "none" }}
+                    onChange={() => toggleTaskDone(task.id, task.isDone)}
                   />
                   <label className="cbx" htmlFor={`cbx-${task.id}`}>
                     <span>
@@ -135,13 +153,18 @@ function Home() {
                         autoFocus
                       />
                     ) : (
-                      <span className="text-white font-semibold">
+                      <span
+                        className={`text-white font-semibold ${
+                          task.isDone ? "line-through opacity-50" : ""
+                        }`}
+                      >
                         {task.task}
                       </span>
                     )}
                   </label>
                 </div>
               </div>
+
               <div className="flex gap-2">
                 <button
                   type="button"
