@@ -39,6 +39,7 @@ The frontend will be available at: http://localhost:5173
 - Create new tasks
 - Edit existing tasks
 - Delete tasks
+- Mark tasks as completed or not completed
 
 ## Live Demo
 
