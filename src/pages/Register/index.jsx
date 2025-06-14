@@ -32,7 +32,7 @@ function Register() {
       if (err.response?.status === 409) {
         toast.error("This email is already in use.");
       } else {
-        toast.error("Error registering user.");
+        toast.error(err);
       }
     }
   }

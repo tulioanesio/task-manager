@@ -5,13 +5,17 @@ import Edit from "../../assets/Edit.png";
 import Logout from "../../assets/Logout.png";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from 'jwt-decode';
+import ModalConfirmDelete from "../../components/ModalConfirmDelete";
 
 function Home() {
   const [tasks, setTasks] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [user, setUser] = useState(null);
-  const inputTask = useRef();
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const inputTask = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,13 +43,14 @@ function Home() {
   }
 
   async function postTasks() {
-    if (!inputTask.current.value.trim()) return;
-    await api.post("/tasks", { task: inputTask.current.value });
+    if (!inputValue.trim()) return;
+    await api.post("/tasks", { task: inputValue });
     setInputValue("");
     getTasks();
   }
 
   async function putTasks(id, newTaskValue) {
+    if (!newTaskValue.trim()) return;
     await api.put(`/tasks/${id}`, { task: newTaskValue });
     setEditingTaskId(null);
     getTasks();
@@ -70,12 +75,32 @@ function Home() {
     navigate("/login");
   }
 
-  const handleSubmit = (e) => {
+  function handleOpenModal(id) {
+    setTaskToDelete(id);
+    setIsModalOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (taskToDelete !== null) {
+      await deleteTasks(taskToDelete);
+    }
+    setIsModalOpen(false);
+    setTaskToDelete(null);
+  }
+
+  function handleCancelDelete() {
+    setIsModalOpen(false);
+    setTaskToDelete(null);
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
-  };
+    postTasks();
+  }
 
   return (
     <div className="flex min-h-screen bg-[#121212] text-white">
+      {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 bg-[#1E1E2E] flex-col justify-between py-6 px-4 fixed left-0 top-0 bottom-0">
         <div>
           <h2 className="text-lg font-bold mb-4">To-Do List | UNISUL</h2>
@@ -90,55 +115,58 @@ function Home() {
                   return (first + last).toUpperCase();
                 })()}
               </div>
-              <div className="flex flex-col">
-                <p className="text-sm text-gray-300 font-bold">{user.name}</p>
+              <div>
+                <p className="text-sm font-bold">{user.name}</p>
                 <small className="text-sm text-gray-400">{user.email}</small>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col my-20">
-            <div className="border h-60 bg-[#2A2A3C] rounded-md p-4 mb-4">
-              <h2 className="text-lg font-bold mb-2">Tarefas pendentes</h2>
-              <div className="mt-4">
-                <div className="w-full bg-[#3B3B5C] rounded-full h-3">
-                  <div
-                    className="bg-[#4bb1f1] h-3 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${tasks.length === 0 ? 0 : Math.round((tasks.filter(task => task.isDone).length / tasks.length) * 100)}%`
-                    }}
-                  ></div>
-                </div>
-                <div className="flex justify-between mt-1 text-xs text-gray-400">
-                  <span>
-                    {tasks.length === 0
-                      ? "0% concluído"
-                      : `${Math.round((tasks.filter(task => task.isDone).length / tasks.length) * 100)}% concluído`}
-                  </span>
-                  <span>
-                    {tasks.filter(task => task.isDone).length} de {tasks.length} concluídas
-                  </span>
+          {
+            tasks.length > 0 && (
+              <div className="flex flex-col my-20">
+                <div className="border h-60 bg-[#2A2A3C] rounded-md p-4 mb-4">
+                  <h2 className="text-lg font-bold mb-2">Tarefas pendentes</h2>
+                  <div className="mt-4">
+                    <div className="w-full bg-[#3B3B5C] rounded-full h-3">
+                      <div
+                        className="bg-[#4bb1f1] h-3 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${tasks.length === 0 ? 0 : Math.round((tasks.filter(t => t.isDone).length / tasks.length) * 100)}%`
+                        }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-gray-400">
+                      <span>
+                        {tasks.length === 0
+                          ? "0% concluído"
+                          : `${Math.round((tasks.filter(t => t.isDone).length / tasks.length) * 100)}% concluído`}
+                      </span>
+                      <span>
+                        {tasks.filter(t => t.isDone).length} de {tasks.length} concluídas
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            )}
         </div>
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#E0E0E0] border border-[#2C2C3A] bg-[#3B3B5C] rounded hover:bg-[#4b4b6c] transition-colors cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#E0E0E0] border border-[#2C2C3A] bg-[#3B3B5C] rounded hover:bg-[#4b4b6c]"
         >
           <img src={Logout} style={{ width: "16px", height: "16px" }} alt="Logout" />
           Sair
         </button>
       </aside>
 
-      <main className={`flex-1 ${'md:ml-64'} px-4 sm:px-6 md:px-12 py-10 w-full`}>
-
+      {/* Main */}
+      <main className={`flex-1 md:ml-64 px-4 sm:px-6 md:px-12 py-10 w-full`}>
         <div className="flex justify-end mb-4 md:hidden">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#E0E0E0] border border-[#2C2C3A] bg-[#3B3B5C] rounded hover:bg-[#4b4b6c] transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#E0E0E0] border border-[#2C2C3A] bg-[#3B3B5C] rounded hover:bg-[#4b4b6c]"
           >
             <img src={Logout} style={{ width: "16px", height: "16px" }} alt="Logout" />
             Sair
@@ -146,6 +174,7 @@ function Home() {
         </div>
 
         <h1 className="text-3xl font-bold mb-4">Minhas Tarefas</h1>
+
         <form onSubmit={handleSubmit} className="bg-[#1E1E2E] rounded-md p-6 shadow-lg">
           <div className="flex flex-col gap-4">
             <input
@@ -164,7 +193,6 @@ function Home() {
                 id="btn-Add"
                 type="submit"
                 className="h-11 w-46 border border-[#2C2C3A] bg-[#3B3B5C] rounded-sm font-bold transition duration-300"
-                onClick={postTasks}
                 disabled={!inputValue.trim()}
                 style={{
                   cursor: inputValue.trim() ? "pointer" : "not-allowed",
@@ -176,15 +204,17 @@ function Home() {
             </div>
           </div>
 
-          <p>{tasks.length} tarefas no total</p>
+          {tasks.length > 0 && (
+            <p>{tasks.length} tarefas no total</p>
+          )}
 
           <div className="mt-6 space-y-4 md:max-h-[450px] md:overflow-y-auto">
             {tasks.map((task) => (
               <div
-                className="flex items-center justify-between bg-[#2A2A3C] p-4 rounded-md"
                 key={task.id}
+                className="flex items-center justify-between bg-[#2A2A3C] p-4 rounded-md"
               >
-                <div className="task-content">
+                <div>
                   <div className="checkbox-wrapper-15">
                     <input
                       className="inp-cbx"
@@ -200,22 +230,24 @@ function Home() {
                           <polyline points="1 5 4 8 11 1"></polyline>
                         </svg>
                       </span>
+
                       {editingTaskId === task.id ? (
                         <input
                           defaultValue={task.task}
+                          autoFocus
+                          onBlur={(e) => putTasks(task.id, e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
-                              putTasks(task.id, e.target.value);
+                              putTasks(task.id, e.currentTarget.value);
+                            }
+                            if (e.key === "Escape") {
+                              setEditingTaskId(null);
                             }
                           }}
-                          onBlur={() => setEditingTaskId(null)}
                           className="bg-transparent text-white border-b border-white focus:outline-none"
-                          autoFocus
                         />
                       ) : (
-                        <span
-                          className={`text-white font-semibold ${task.isDone ? "line-through opacity-50" : ""}`}
-                        >
+                        <span className={`font-semibold ${task.isDone ? "line-through opacity-50" : ""}`}>
                           {task.task}
                         </span>
                       )}
@@ -234,7 +266,11 @@ function Home() {
 
                   <button
                     type="button"
-                    onClick={() => deleteTasks(task.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleOpenModal(task.id);
+                    }}
                     className="hover:bg-[#3B3B3B] rounded p-2 cursor-pointer"
                   >
                     <img src={Trash} style={{ width: "16px", height: "16px" }} alt="Delete" />
@@ -245,6 +281,13 @@ function Home() {
           </div>
         </form>
       </main>
+
+      {isModalOpen && (
+        <ModalConfirmDelete
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
     </div>
   );
 }
