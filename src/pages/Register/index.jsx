@@ -4,12 +4,16 @@ import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Hide from "../../assets/Hide.png";
+import Show from "../../assets/Show.png";
 
 function Register() {
   const nameRef = useRef();
   const emailRef = useRef();
   const passwordRef = useRef();
   const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [isRevealPwd, setIsRevealPwd] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -23,14 +27,14 @@ function Register() {
       const token = response.data.token;
       localStorage.setItem("token", token);
 
-      toast.success("User registered successfully", {
-        autoClose: 500
+      toast.success("Usuário registrado com sucesso!", {
+        autoClose: 500,
       });
 
       setTimeout(() => navigate("/home"), 1000);
     } catch (err) {
       if (err.response?.status === 409) {
-        toast.error("This email is already in use.");
+        toast.error("Este email já está em uso.");
       } else {
         toast.error(err);
       }
@@ -44,12 +48,15 @@ function Register() {
         <h1 className="text-center text-[#E0E0E0] font-bold text-2xl mb-2">
           Cadastre-se
         </h1>
-        <p className="text-[#E0E0E0] text-md text-center">Entre na sua conta para visualizar suas tarefas</p>
+        <p className="text-[#E0E0E0] text-md text-center">
+          Entre na sua conta para visualizar suas tarefas
+        </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 my-8">
-
           <div className="flex flex-col gap-2">
-            <label htmlFor="name" className="text-[#E0E0E0] text-md">Nome</label>
+            <label htmlFor="name" className="text-[#E0E0E0] text-md">
+              Nome
+            </label>
             <input
               ref={nameRef}
               type="text"
@@ -60,7 +67,9 @@ function Register() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-[#E0E0E0] text-md">E-mail</label>
+            <label htmlFor="email" className="text-[#E0E0E0] text-md">
+              E-mail
+            </label>
             <input
               ref={emailRef}
               type="text"
@@ -71,14 +80,31 @@ function Register() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="password" className="text-[#E0E0E0] text-md">Senha</label>
-            <input
-              ref={passwordRef}
-              type="password"
-              placeholder="Senha"
-              className="px-3 py-2 rounded-md bg-[#2A2A3C] text-[#E0E0E0] placeholder-[#2c729e] focus:outline-none focus:ring-2 focus:ring-[#4bb1f1]"
-              required
-            />
+            <label htmlFor="password" className="text-[#E0E0E0] text-md">
+              Senha
+            </label>
+            <div className="relative w-full">
+              <input
+                ref={passwordRef}
+                type={isRevealPwd ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Senha"
+                className="w-full pr-8 px-3 py-2 rounded-md bg-[#2A2A3C] text-[#E0E0E0] placeholder-[#2c729e] focus:outline-none focus:ring-2 focus:ring-[#4bb1f1]"
+                required
+              />
+              <div
+                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full p-2 hover:bg-[#4b4b6c]"
+                title={isRevealPwd ? "Esconder senha" : "Mostrar senha"}
+                onClick={() => setIsRevealPwd((prev) => !prev)}
+              >
+                <img
+                  src={isRevealPwd ? Show : Hide}
+                  alt="Toggle password visibility"
+                  style={{ width: "16px", height: "16px" }}
+                />
+              </div>
+            </div>
           </div>
 
           <button
